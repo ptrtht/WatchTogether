@@ -1,0 +1,57 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HTTP Video Stream</title>
+</head>
+
+<body style="background-color: black;">
+    <video id="videoPlayer" width="100%" controls muted="muted" autoplay>
+        <source src="/video" type="video/mp4" />
+    </video>
+</body>
+<script>
+    const sessionID = window.prompt("Please Enter Your Sesssion ID", "ly");
+    const leader = window.confirm("You the session leader? \n  ok = yes | calncel = no ");;
+    const video = document.getElementById("videoPlayer");
+    let time;
+
+    window.onload = setInterval(() => {
+        const Http = new XMLHttpRequest();
+        const url = '/sync';
+        Http.open("GET", url, true);
+        Http.setRequestHeader('isLeader', leader);
+        Http.setRequestHeader('sessionID', sessionID);
+        Http.setRequestHeader('time', video.currentTime);
+        Http.setRequestHeader('isPaused', video.paused);
+        Http.send();
+        Http.onreadystatechange = (e) => {
+
+            const responseTime = parseFloat(Http.responseText.split('|')[0])
+            const responseIsPaused = Http.responseText.split('|')[1]
+            //console.log('time is : ' + responseTime)
+            //console.log('is it paused? : ' + video.paused)
+
+
+            if (leader) {
+                //  console.log("leader instance");
+            } else if (!leader) {
+                time = responseTime;
+                if (responseIsPaused === 'true') {
+                    video.pause()
+                    //      console.log("paused");
+                    video.currentTime = responseTime
+                } else if (responseIsPaused === 'false') {
+                    video.play()
+                    //       console.log("playing");
+                }
+                //     console.log("NOT leader instance");
+                //    console.log(time);
+            }
+
+        }
+    }, 500)
+</script>
+
+</html>
